@@ -4,9 +4,10 @@ from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 # Create your views here.
 
-
+@login_required(login_url='/login/')
 def receipes(request):
     if request.method == "POST":
         
@@ -29,6 +30,7 @@ def receipes(request):
     return render(request, 'receipes.html', {'receipes':queryset})
 
 
+@login_required(login_url='/login/')
 def update_receipe(request, id):
     queryset = Receipe.objects.get(id=id)
 
@@ -51,7 +53,7 @@ def update_receipe(request, id):
     context = {'receipe':queryset}
     return render(request, 'update_receipe.html', context)  
 
-
+@login_required(login_url='/login/')
 def delete_receipe(request, id):
     queryset = Receipe.objects.get(id=id)
     queryset.delete()
