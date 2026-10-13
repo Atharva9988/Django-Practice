@@ -1,7 +1,4 @@
 from django.contrib import admin
-
-# Register your models here.
-from .models import *
-
+from .models import Receipe
 
 admin.site.register(Receipe)
