@@ -9,4 +9,3 @@ class Receipe(models.Model):
     receipe_description = models.TextField()
     receipe_image = models.ImageField(upload_to="receipe")
     recipe_view_count = models.IntegerField(default=1) 
-
