@@ -31,4 +31,4 @@ def seed_db(n=10)-> None:
 
 
 
-# Today I ran few of Advanced Django queries and I found that I can use the above code to get the student with a specific data, get all students name under a department, and get all students with a specific age.
+# 22/10/2026: Today I ran few of Advanced Django queries and I found that I can use the above code to get the student with a specific data, get all students name under a department, and get all students with a specific age.
