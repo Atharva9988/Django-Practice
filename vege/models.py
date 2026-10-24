@@ -45,4 +45,4 @@ class Student(models.Model):
 
 
 
-# 23/10/2026: Today I performed Aggregation and Annotation queries on the above models and I found that I can use the above code to get the total number of students in a department, get the average age of students in a department, and get the maximum and minimum age of students in a department.
+# 23/10/2026: Today I performed Aggregation and Annotation queries on the above models and I found that I can use the above code to get the total number of students in a department, get the average age of students in a department, and get the maximum and minimum age of students in a department. 
