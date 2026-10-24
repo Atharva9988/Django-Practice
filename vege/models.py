@@ -1,11 +1,5 @@
 from django.db import models
-#from django.contrib.auth.models import User
-from django.contrib.auth import get_user_model
-from django.contrib.auth import User
 from django.conf import settings
-
-User = get_user_model()
-# Create your models here.
 
 
 class Receipe(models.Model):
@@ -13,7 +7,7 @@ class Receipe(models.Model):
     receipe_name = models.CharField(max_length=100)
     receipe_description = models.TextField()
     receipe_image = models.ImageField(upload_to="receipe")
-    recipe_view_count = models.IntegerField(default=1) 
+    recipe_view_count = models.IntegerField(default=0)
 
 
 class Department(models.Model):
@@ -32,6 +26,7 @@ class StudentID(models.Model):
     def __str__(self) -> str:
         return self.student_id
 
+
 class Student(models.Model):
     department = models.ForeignKey(Department, related_name='depart', on_delete=models.CASCADE)
     student_id = models.ForeignKey(StudentID, related_name='studentid', on_delete=models.CASCADE)
@@ -46,8 +41,3 @@ class Student(models.Model):
     class Meta:
         ordering = ['student_name']
         verbose_name = "student"
-
-
-
-
-# 23/10/2026: Today I performed Aggregation and Annotation queries on the above models and I found that I can use the above code to get the total number of students in a department, get the average age of students in a department, and get the maximum and minimum age of students in a department. 
