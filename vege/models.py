@@ -2,6 +2,11 @@ from django.db import models
 from django.conf import settings
 
 
+class ReceipeManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
+        
+
 class Receipe(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     receipe_name = models.CharField(max_length=100)
@@ -10,6 +15,8 @@ class Receipe(models.Model):
     recipe_view_count = models.IntegerField(default=1)
     is_deleted = models.BooleanField(default=False)
 
+    objects = models.Manager()
+    admin_objects = models.Manager()
 
 class Department(models.Model):
     department = models.CharField(max_length=100)
