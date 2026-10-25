@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 
 
-class ReceipeManager(models.Manager):
+class StudentManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_deleted=False)
         
@@ -13,10 +13,8 @@ class Receipe(models.Model):
     receipe_description = models.TextField()
     receipe_image = models.ImageField(upload_to="receipe")
     recipe_view_count = models.IntegerField(default=1)
-    is_deleted = models.BooleanField(default=False)
 
-    objects = models.Manager()
-    admin_objects = models.Manager()
+
 
 class Department(models.Model):
     department = models.CharField(max_length=100)
@@ -42,6 +40,11 @@ class Student(models.Model):
     student_email = models.EmailField(unique=True)
     student_age = models.IntegerField(default=18)
     student_address = models.TextField()
+    is_deleted = models.BooleanField(default=False)
+
+    objects = StudentManager()
+    admin_objects = models.Manager()
+
 
     def __str__(self) -> str:
         return self.student_name
