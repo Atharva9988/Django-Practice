@@ -16,8 +16,7 @@ def home(request):
         {'name' : 'Rohit Sharma', 'age' : 39, 'totalruns': 20427}, 
     ]
 
-    for player in players:
-        print(player)
+    
 
     return render(request, "home/index.html" , context={'page':'Django Practice','players': players})
 
