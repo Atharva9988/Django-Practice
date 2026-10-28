@@ -5,11 +5,33 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.mail import BadHeaderError, send_mail
 from django.core.validators import validate_email
+from django.http import HttpResponse
 from django.shortcuts import render
 
 logger = logging.getLogger(__name__)
-
 MAX_EMAILS_PER_HOUR = 10
+
+
+def home(request):
+    players = [
+        {'name': 'Abhishek Sharma', 'age': 23, 'totalruns': 1630},
+        {'name': 'Shubhman Gill', 'age': 25, 'totalruns': 7291},
+        {'name': 'Virat Kohli', 'age': 37, 'totalruns': 28359},
+        {'name': 'Rohit Sharma', 'age': 39, 'totalruns': 20427},
+    ]
+    return render(request, "home/index.html", {'page': 'Django Practice', 'players': players})
+
+
+def about(request):
+    return render(request, "home/about.html", {'page': 'About'})
+
+
+def contact(request):
+    return render(request, "home/contact.html", {'page': 'Contact'})
+
+
+def livingroom(request):
+    return HttpResponse("<h2>Living room</h2>")
 
 
 def _over_limit(user_id):
@@ -37,7 +59,6 @@ def send_email_view(request):
                 raise ValidationError("Subject or message is too long.")
             if _over_limit(request.user.pk):
                 raise ValidationError("Too many emails sent. Try again later.")
-
             send_mail(data["subject"], data["message"], None, [data["to_email"]])
             context["success"] = f"Email sent to {data['to_email']}."
             context["form_data"] = {}
@@ -46,4 +67,4 @@ def send_email_view(request):
         except (BadHeaderError, OSError):
             logger.exception("Email send failed for user %s", request.user.pk)
             context["error"] = "Could not send the email. Try again."
-    return render(request, "home/send_email.html", context)
+    return render(request, "home/send_emails.html", context)
