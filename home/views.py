@@ -67,4 +67,4 @@ def send_email_view(request):
         except (BadHeaderError, OSError):
             logger.exception("Email send failed for user %s", request.user.pk)
             context["error"] = "Could not send the email. Try again."
-    return render(request, "home/send_emails.html", context)
+    return render(request, "home/send_email.html", context)

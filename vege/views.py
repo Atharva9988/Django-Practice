@@ -60,7 +60,7 @@ def login_page(request):
     if request.method == "POST":
         user = authenticate(
             request,
-            username=request.POST.get("username", "").strip(),  # this is the phone number
+            username=request.POST.get("username", "").strip(),
             password=request.POST.get("password", ""),
         )
         if user is None:
