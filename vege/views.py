@@ -1,121 +1,107 @@
-from django.shortcuts import render, redirect
-from.models import Receipe
-from django.http import HttpResponse
-from django.contrib.auth.models import User
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
+
+from .forms import ReceipeForm
+from .models import Receipe
 
 User = get_user_model()
 
-# Create your views here.
+
+def _flash_errors(request, form):
+    for errors in form.errors.values():
+        for err in errors:
+            messages.error(request, err)
 
 
-@login_required(login_url='/login/')
+@login_required
 def receipes(request):
     if request.method == "POST":
-        
-        data = request.POST
-        receipe_image = request.FILES.get('receipe_image')
-        receipe_name = data.get('receipe_name')
-        receipe_description = data.get('receipe_description')
-        
-        Receipe.objects.create(
-            receipe_description=receipe_description,
-            receipe_name=receipe_name,
-            receipe_image=receipe_image,
-            )
-        return redirect('/receipes/')
-    queryset = Receipe.objects.all()
+        form = ReceipeForm(request.POST, request.FILES)
+        if form.is_valid():
+            receipe = form.save(commit=False)
+            receipe.user = request.user
+            receipe.save()
+        else:
+            _flash_errors(request, form)
+        return redirect("receipes")
 
-    if request.GET.get('search'):
-        queryset = queryset.filter(receipe_name__icontains = request.GET.get('search'))
-    context = {'receipe':queryset}
-    return render(request, 'receipes.html', {'receipes':queryset})
+    queryset = Receipe.objects.filter(user=request.user)
+    search = request.GET.get("search", "").strip()
+    if search:
+        queryset = queryset.filter(receipe_name__icontains=search)
+    return render(request, "receipes.html", {"receipes": queryset})
 
 
-@login_required(login_url='/login/')
+@login_required
 def update_receipe(request, id):
-    queryset = Receipe.objects.get(id=id)
-
+    receipe = get_object_or_404(Receipe, id=id, user=request.user)
     if request.method == "POST":
-        data = request.POST
-        receipe_image = request.FILES.get('receipe_image')
-        receipe_name = data.get('receipe_name')
-        receipe_description = data.get('receipe_description')
-
-        queryset.receipe_name = receipe_name
-        queryset.receipe_description = receipe_description
-
-        if receipe_image:
-            queryset.receipe_image = receipe_image
-
-        queryset.save()
-        return redirect('/receipes/')
+        form = ReceipeForm(request.POST, request.FILES, instance=receipe)
+        if form.is_valid():
+            form.save()
+            return redirect("receipes")
+        _flash_errors(request, form)
+    return render(request, "update_receipe.html", {"receipe": receipe})
 
 
-    context = {'receipe':queryset}
-    return render(request, 'update_receipe.html', context)  
-
-@login_required(login_url='/login/')
+@login_required
+@require_POST
 def delete_receipe(request, id):
-    queryset = Receipe.objects.get(id=id)
-    queryset.delete()
-    return redirect('/receipes/')
+    get_object_or_404(Receipe, id=id, user=request.user).delete()
+    return redirect("receipes")
 
 
 def login_page(request):
     if request.method == "POST":
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        if not User.objects.filter(username=username).exists():
-            messages.info(request, "Invalid username.")
-            return redirect('/login/')
-
-        user = authenticate(username=username, password=password)
-
+        user = authenticate(
+            request,
+            username=request.POST.get("username", "").strip(),  # this is the phone number
+            password=request.POST.get("password", ""),
+        )
         if user is None:
-            messages.error(request, "Invalid password.")
-            return redirect('/login/')
+            messages.error(request, "Invalid phone number or password.")
+            return redirect("login_page")
+        login(request, user)
+        return redirect("receipes")
+    return render(request, "login.html")
 
-        else:
-            login(request, user)
-            return redirect('/receipes/')
-        
-    return render(request, 'login.html')
 
+@require_POST
 def logout_page(request):
-     logout(request)
-     return redirect('/login/')
+    logout(request)
+    return redirect("login_page")
+
 
 def register(request):
-
     if request.method == "POST":
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        phone = request.POST.get("phone_number", "").strip()
+        email = request.POST.get("email", "").strip().lower()
+        password = request.POST.get("password", "")
 
-        user = User.objects.filter(username=username)
-        
-        if user.exists():
-            messages.info(request, "Username already exists. Please choose a different username.")
-            return redirect('/register/')
+        if not phone or not email:
+            messages.error(request, "Phone number and email are required.")
+            return redirect("register")
+        if User.objects.filter(phone_number=phone).exists() or User.objects.filter(email=email).exists():
+            messages.error(request, "An account with that phone number or email already exists.")
+            return redirect("register")
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            messages.error(request, " ".join(e.messages))
+            return redirect("register")
 
-        user = User.objects.create(
-            first_name=first_name,
-            last_name=last_name,
-            username=username,
+        User.objects.create_user(
+            phone_number=phone,
+            email=email,
+            password=password,
+            first_name=request.POST.get("first_name", "").strip(),
+            last_name=request.POST.get("last_name", "").strip(),
         )
-
-        user.set_password(password)
-        user.save()
-
-        messages.info(request, "Account created successfully. You can now log in.")
-
-        return redirect('/register/')
-
-    return render(request, 'register.html')
-
+        messages.success(request, "Account created. You can log in now.")
+        return redirect("login_page")
+    return render(request, "register.html")
