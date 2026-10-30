@@ -90,3 +90,4 @@ MAILERS = {
 }
 
 DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_USER', '')
+Email_Backend = "django.core.mail.backends.console.EmailBackend"
